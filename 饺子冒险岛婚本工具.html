@@ -1,0 +1,1938 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f1f5f9">
+<title>冒险岛婚本工具</title>
+<style>
+  :root {
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --text: #1e293b;
+    --text-secondary: #64748b;
+    --border: #e2e8f0;
+    --unknown: #94a3b8;
+    --correct: #10b981;
+    --wrong: #ef4444;
+    --stand: #3b82f6;
+    --stand-bg: #dbeafe;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", "PingFang SC", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    justify-content: center;
+    padding: 12px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  #tabContentPlatform {
+    max-width: 480px;
+    align-self: center;
+    width: 100%;
+  }
+
+  /* ── Tabs ── */
+  .tab-bar {
+    display: flex;
+    gap: 6px;
+  }
+  .tab {
+    flex: 1;
+    padding: 10px 0;
+    font-size: .95rem;
+    font-weight: 600;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tab.active {
+    background: #3b82f6;
+    color: #fff;
+    border-color: #3b82f6;
+  }
+  .tab:hover:not(.active) { background: #f1f5f9; }
+  .tab-content { display: flex; flex-direction: column; gap: 12px; }
+  .mode-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 2px 0;
+  }
+  .speed-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .speed-toggle input { width: 16px; height: 16px; cursor: pointer; }
+  .learn-hint { font-size: .68rem; color: #94a3b8; }
+
+  /* ── Tree ── */
+  .tree-wrap {
+    width: 100%;
+  }
+  .tree-wrap svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .tree-note {
+    text-align: center;
+    font-size: .82rem;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  /* ── Footer ── */
+  .footer-note {
+    text-align: center;
+    font-size: .78rem;
+    color: #64748b;
+    padding: 4px 0 8px;
+    line-height: 1.5;
+  }
+  .author {
+    text-align: center;
+    font-size: .72rem;
+    color: #94a3b8;
+    padding: 4px 0;
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    padding: 4px 0 0;
+  }
+  .header h1 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+  }
+  .header .subtitle {
+    font-size: .78rem;
+    color: var(--text-secondary);
+    margin-top: 1px;
+  }
+
+  /* ── Platform Grid ── */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 12px;
+  }
+  .card-title {
+    font-size: .72rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 8px;
+  }
+
+  .platforms {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .platforms-row {
+    display: flex;
+    gap: 5px;
+  }
+  .platforms-row.top {
+    justify-content: center;
+  }
+  .platforms-row.top .plat {
+    flex: 1;
+    max-width: calc((100% - 15px) / 5);
+  }
+  .platforms-row.bottom {
+    justify-content: center;
+  }
+  .platforms-row.bottom .plat {
+    flex: 1;
+  }
+  .plat {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: .8rem;
+    transition: all .25s;
+    cursor: default;
+    position: relative;
+    border: 2px solid transparent;
+    min-width: 0;
+  }
+  .plat .num {
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+  .plat .tag {
+    font-size: .65rem;
+    line-height: 1;
+    margin-top: 1px;
+  }
+
+  .plat.unknown   { background: #f1f5f9; color: var(--unknown); border-color: #e2e8f0; }
+  .plat.correct   { background: #ecfdf5; color: #059669; border-color: #6ee7b7; }
+  .plat.wrong     { background: #fef2f2; color: #dc2626; border-color: #fca5a5; }
+  .plat.stand     { background: var(--stand-bg); color: #2563eb; border-color: #93c5fd; animation: pulse 1.2s ease-in-out infinite; }
+  .plat.stand-correct { background: #ecfdf5; color: #059669; border-color: #3b82f6; animation: pulse-green 1.2s ease-in-out infinite; }
+  .plat.stand-wrong   { background: #fef2f2; color: #dc2626; border-color: #fca5a5; animation: pulse-red 1.2s ease-in-out infinite; }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,.4); }
+    50%      { box-shadow: 0 0 0 8px rgba(59,130,246,0); }
+  }
+  @keyframes pulse-green {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,.4); }
+    50%      { box-shadow: 0 0 0 8px rgba(16,185,129,0); }
+  }
+  @keyframes pulse-red {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,.4); }
+    50%      { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+  }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,.4); }
+    50%      { box-shadow: 0 0 0 8px rgba(59,130,246,0); }
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    font-size: .78rem;
+    color: var(--text-secondary);
+  }
+  .legend span { display: flex; align-items: center; gap: 4px; }
+  .legend .dot {
+    width: 12px; height: 12px; border-radius: 4px; display: inline-block;
+  }
+  .legend .dot.unknown { background: #f1f5f9; border: 1.5px solid #e2e8f0; }
+  .legend .dot.correct { background: #ecfdf5; border: 1.5px solid #6ee7b7; }
+  .legend .dot.wrong   { background: #fef2f2; border: 1.5px solid #fca5a5; }
+  .legend .dot.stand   { background: var(--stand-bg); border: 1.5px solid #93c5fd; }
+  .legend .dot.stand-correct { background: #ecfdf5; border: 2px solid #3b82f6; }
+
+  /* ── Instruction ── */
+  .instruction-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px;
+  }
+  .step-badge {
+    display: inline-block;
+    background: var(--stand-bg);
+    color: #2563eb;
+    font-weight: 700;
+    font-size: .78rem;
+    padding: 3px 10px;
+    border-radius: 99px;
+    margin-bottom: 6px;
+  }
+  .instruction-text {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+  .instruction-detail {
+    font-size: .82rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    line-height: 1.45;
+  }
+  .platforms-to-stand {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .plat-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px; height: 42px;
+    border-radius: 10px;
+    background: var(--stand-bg);
+    color: #2563eb;
+    font-weight: 700;
+    font-size: 1rem;
+    border: 2px solid #93c5fd;
+    padding: 0 4px;
+  }
+
+  /* ── Input / Actions ── */
+  .input-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-top: 8px;
+    justify-content: center;
+  }
+  .input-row .btn {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #475569;
+  }
+
+  .btn {
+    padding: 12px 16px;
+    font-size: .95rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all .12s;
+    white-space: nowrap;
+    letter-spacing: .01em;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { transform: scale(.96); }
+  .btn-primary {
+    background: #3b82f6;
+    color: #fff;
+  }
+  .btn-primary:hover { background: #2563eb; }
+  .btn-primary:active { background: #1d4ed8; }
+  .btn-primary:disabled { background: #93c5fd; cursor: not-allowed; }
+
+  .btn-outline {
+    background: #fff;
+    color: #64748b;
+    border: 1.5px solid var(--border);
+  }
+  .btn-outline:hover { background: #f8fafc; color: #475569; }
+  .btn-outline:active { background: #e2e8f0; }
+  .btn-outline:disabled { opacity: .4; cursor: not-allowed; }
+
+  .btn-danger {
+    background: #fff;
+    color: #ef4444;
+    border: 1.5px solid #fecaca;
+  }
+  .btn-danger:hover { background: #fef2f2; }
+
+  /* ── Number Buttons ── */
+  .num-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .num-btn {
+    padding: 14px 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--text);
+    cursor: pointer;
+    transition: all .1s;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .num-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
+  .num-btn:active { background: #dbeafe; border-color: #93c5fd; transform: scale(.95); }
+  .num-btn:disabled { background: #e2e8f0; color: #94a3b8; border-color: #e2e8f0; cursor: not-allowed; opacity: .5; }
+
+  .feedback-label {
+    font-size: .8rem;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  /* ── Phase 1 Slots ── */
+  .p1-slots {
+    display: flex;
+    gap: 6px;
+    margin: 10px 0;
+  }
+  .p1-slot {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 10px 4px 8px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 2px solid var(--border);
+    transition: all .2s;
+    min-width: 0;
+  }
+  .p1-slot.active {
+    background: #dbeafe;
+    border-color: #93c5fd;
+    animation: pulse-slot 1s ease-in-out infinite;
+  }
+  .p1-slot.filled {
+    background: #f0fdf4;
+    border-color: #86efac;
+  }
+  @keyframes pulse-slot {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,.3); }
+    50%      { box-shadow: 0 0 0 6px rgba(59,130,246,0); }
+  }
+  .p1-label {
+    font-size: .85rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+  }
+  .p1-slot.active .p1-label { color: #2563eb; }
+  .p1-slot.filled .p1-label { color: #059669; }
+  .p1-val {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #94a3b8;
+    min-height: 28px;
+  }
+  .p1-slot.active .p1-val { color: #2563eb; }
+  .p1-slot.filled .p1-val { color: #059669; }
+
+  /* ── Phase 2 Selectable Platforms ── */
+  .sel-row {
+    display: flex;
+    gap: 8px;
+    margin: 8px 0;
+  }
+  .sel-plat {
+    flex: 1;
+    padding: 14px 8px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    border: 2px solid var(--border);
+    background: #f8fafc;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all .15s;
+    text-align: center;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .sel-plat:active:not(:disabled) { transform: scale(.95); }
+  .sel-plat:disabled { cursor: default; opacity: .7; }
+  .sel-plat.unknown:hover:not(:disabled) { background: #f1f5f9; border-color: #94a3b8; }
+  .sel-plat.selected {
+    background: #dbeafe;
+    border-color: #3b82f6;
+    color: #2563eb;
+  }
+  .sel-plat.recommend {
+    background: #fefce8;
+    border-color: #facc15;
+    color: #a16207;
+    animation: pulse-rec 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse-rec {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(250,204,21,.4); }
+    50%      { box-shadow: 0 0 0 6px rgba(250,204,21,0); }
+  }
+  .sel-plat.known-correct {
+    background: #ecfdf5;
+    border-color: #6ee7b7;
+    color: #059669;
+    cursor: default;
+  }
+  .sel-plat.known-wrong {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #dc2626;
+    cursor: default;
+  }
+  .sel-tag {
+    display: block;
+    font-size: .6rem;
+    margin-top: 1px;
+    font-weight: 400;
+  }
+  .sel-explain {
+    font-size: .82rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    line-height: 1.5;
+    text-align: center;
+  }
+  .speed-log {
+    font-size: .78rem;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    line-height: 1.8;
+    padding: 8px 10px;
+    background: #f8fafc;
+    border-radius: 8px;
+  }
+  .speed-log b { color: #2563eb; }
+  .suggestion {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: .82rem;
+    color: #92400e;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  /* ── Analysis Banner ── */
+  .analysis {
+    background: #fffbeb;
+    border: 1.5px solid #fde68a;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: .88rem;
+    line-height: 1.6;
+    margin-top: 10px;
+    display: none;
+  }
+  .analysis.show { display: block; }
+  .analysis strong { color: #d97706; }
+  .analysis.error {
+    background: #fef2f2;
+    border-color: #fca5a5;
+  }
+  .analysis.error strong { color: #dc2626; }
+
+  /* ── History ── */
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .85rem;
+  }
+  .history-table th {
+    text-align: left;
+    padding: 8px 6px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    border-bottom: 2px solid var(--border);
+  }
+  .history-table td {
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.4;
+  }
+  .history-table .deduction {
+    font-size: .8rem;
+    color: #059669;
+  }
+  .history-table tr:last-child td { border-bottom: none; }
+
+  /* ── Result ── */
+  .result {
+    background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+    border: 2px solid #6ee7b7;
+    border-radius: var(--radius);
+    padding: 18px;
+    text-align: center;
+    display: none;
+  }
+  .result.show { display: block; }
+  .result .trophy { font-size: 2rem; margin-bottom: 4px; }
+  .result .answer {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #059669;
+    letter-spacing: .04em;
+  }
+  .result .stats {
+    font-size: .85rem;
+    color: #64748b;
+    margin-top: 4px;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 420px) {
+    body { padding: 8px; }
+    .app { gap: 10px; }
+    .platforms { gap: 3px; }
+    .platforms-row { gap: 3px; }
+    .plat { font-size: .65rem; border-radius: 8px; }
+    .plat .num { font-size: .85rem; }
+    .plat .tag { font-size: .5rem; }
+    .plat-chip { min-width: 36px; height: 36px; font-size: .9rem; border-radius: 8px; }
+    .btn { padding: 10px 14px; font-size: .85rem; }
+    .num-btn { padding: 12px 0; font-size: 1.1rem; min-height: 46px; border-radius: 10px; }
+    .instruction-text { font-size: .92rem; }
+    .card { padding: 10px; }
+    .header h1 { font-size: 1.2rem; }
+  }
+
+  @media (max-width: 360px) {
+    .platforms { gap: 2px; }
+    .platforms-row { gap: 2px; }
+    .plat { border-radius: 6px; }
+    .plat .num { font-size: .72rem; }
+    .plat .tag { font-size: .48rem; }
+    .num-btn { padding: 10px 0; font-size: 1rem; min-height: 40px; gap: 4px; }
+    .num-buttons { gap: 4px; }
+    .plat-chip { min-width: 30px; height: 30px; font-size: .78rem; }
+    .btn { padding: 8px 12px; font-size: .8rem; }
+    .history-table { font-size: .72rem; }
+    .history-table th, .history-table td { padding: 6px 3px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <h1>冒险岛婚本工具</h1>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button class="tab active" id="tabPlatform" onclick="switchTab('platform')">台子</button>
+    <button class="tab" id="tabRope" onclick="switchTab('rope')">绳子</button>
+  </div>
+
+  <!-- Tab: 台子 -->
+  <div class="tab-content" id="tabContentPlatform">
+
+  <!-- Mode Toggle -->
+  <div class="mode-bar">
+    <label class="speed-toggle">
+      <input type="checkbox" id="speedMode" onchange="toggleSpeedMode()">
+      <span>学习模式</span>
+    </label>
+    <span class="learn-hint">想脱离工具，可以用学习模式，不是最快，但好记！</span>
+  </div>
+
+  <!-- Platform Status -->
+  <div class="card">
+    <div class="card-title">台子状态</div>
+    <div class="platforms">
+      <div class="platforms-row" id="platformsRow1"></div>
+      <div class="platforms-row" id="platformsRow2"></div>
+    </div>
+    <div class="analysis" id="analysis"></div>
+  </div>
+
+  <!-- Instruction -->
+  <div class="instruction-card" id="instructionCard">
+    <!-- Dynamic content rendered by JS -->
+  </div>
+
+  <!-- History -->
+  <div class="card" id="historyCard" style="display:none;">
+    <div class="card-title">操作记录</div>
+    <div style="overflow-x:auto;">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>站位台子</th>
+            <th>反馈</th>
+            <th>推论</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="result" id="result">
+    <div class="trophy"></div>
+    <div class="answer" id="resultAnswer"></div>
+    <div class="stats" id="resultStats"></div>
+    <button class="btn btn-outline" style="margin-top:10px;" onclick="resetAll()">重新开始</button>
+  </div>
+</div><!-- end tabContentPlatform -->
+
+<!-- Tab: 绳子 -->
+<div class="tab-content" id="tabContentRope" style="display:none;">
+  <div class="card">
+    <div class="tree-wrap">
+      <svg id="treeSvg" viewBox="0 0 1280 950" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+    <div class="tree-note">当决策树到尽头仍未成功，说明出bug，请多次对话重新开局</div>
+  </div>
+</div><!-- end tabContentRope -->
+
+<script>
+// ── State ──
+const PLATFORM_COUNT = 9;
+const CORRECT_TOTAL = 5;
+
+// Custom labels for each platform (1-indexed)
+const LABEL = ['A', '2', 'B', '3', 'C', '6', 'D', '9', '5'];
+function L(p) { return LABEL[p - 1]; }           // single platform → label
+function Ls(arr) { return arr.map(p => L(p)).join('、'); } // array → "A、2、B…"
+
+// status: 'unknown' | 'correct' | 'wrong'
+let platforms = Array(PLATFORM_COUNT).fill('unknown');
+let error = false; // true when input is mathematically impossible
+
+// history entries: { step, positions: [1-indexed], feedback: number, deduction: string }
+let history = [];
+
+// Phase tracking
+// 'phase1': collecting steps 1-5
+// 'phase2': testing platforms 1,2,3
+// 'done': all finished
+let phase = 'phase1';
+
+// Phase 1 tracking
+const phase1Order = [5, 6, 7, 8, 9];
+
+// Phase 2 tracking (参照法: bottom correct fixed, user picks top platforms)
+let correctIn1to4 = null;
+let baseCorrectPlatforms = []; // correct platforms in {5-9}
+let baseCorrect = 0;          // count of correct in bottom row
+let phase2Selected = [];      // user-selected UNKNOWN top platforms [1-4]
+let phase2Auto = [];          // auto-included known-correct top platforms
+let phase2History = [];       // for undo tracking
+
+// ── DOM refs ──
+const $platformsRow1  = document.getElementById('platformsRow1');
+const $platformsRow2  = document.getElementById('platformsRow2');
+const $analysis        = document.getElementById('analysis');
+const $instructionCard = document.getElementById('instructionCard');
+const $historyCard     = document.getElementById('historyCard');
+const $historyBody     = document.getElementById('historyBody');
+const $result          = document.getElementById('result');
+const $resultAnswer    = document.getElementById('resultAnswer');
+const $resultStats     = document.getElementById('resultStats');
+
+// Phase 1 batch input values (index 0→test 5, ... 4→test 9)
+let batchValues = [0, 0, 0, 0, 0];
+let phase1InputIndex = 0;
+
+// ── Render ──
+function render() {
+  renderPlatforms();
+  if (speedMode) { renderSpeedMode(); }
+  else { renderInstruction(); renderHistory(); }
+  renderResult();
+}
+
+function renderPlatforms() {
+  $platformsRow1.innerHTML = '';
+  $platformsRow2.innerHTML = '';
+  const standSet = error ? new Set() : getCurrentStandSet();
+
+  // In speed mode, derive status from possibleWorlds
+  function getSpeedStatus(i) {
+    if (possibleWorlds.length === 1) return possibleWorlds[0].includes(i) ? 'correct' : 'unknown';
+    return 'unknown';
+  }
+
+  function createPlat(i) {
+    const div = document.createElement('div');
+    div.className = 'plat';
+    const status = speedMode ? getSpeedStatus(i) : platforms[i-1];
+    const isStand = standSet.has(i);
+    if (error) {
+      div.classList.add('wrong');
+    } else if (status === 'correct') {
+      div.classList.add('correct');
+      if (isStand) div.classList.add('stand-correct');
+    } else if (status === 'wrong') {
+      div.classList.add('wrong');
+      if (isStand) div.classList.add('stand-wrong');
+    } else if (isStand) {
+      div.classList.add('stand');
+    } else {
+      div.classList.add('unknown');
+    }
+    const tag = (isStand && !error) ? (speedMode ? '站' : (status === 'correct' ? '锁' : status === 'wrong' ? '排' : '站')) : '';
+    div.innerHTML = `<span class="num">${L(i)}</span><span class="tag">${tag}</span>`;
+    return div;
+  }
+
+  // Top row: platforms 1-4
+  $platformsRow1.className = 'platforms-row top';
+  for (let i = 1; i <= 4; i++) {
+    $platformsRow1.appendChild(createPlat(i));
+  }
+
+  // Bottom row: platforms 5-9
+  $platformsRow2.className = 'platforms-row bottom';
+  for (let i = 5; i <= 9; i++) {
+    $platformsRow2.appendChild(createPlat(i));
+  }
+}
+
+function getCurrentStandSet() {
+  const s = new Set();
+  if (phase === 'done' || error) return s;
+  if (speedMode) {
+    speedSuggested.forEach(p => s.add(p));
+    return s;
+  }
+  if (phase === 'phase1' && phase1InputIndex < 5) {
+    // First 4 fixed + current test platform
+    [1,2,3,4].forEach(p => s.add(p));
+    s.add(phase1Order[phase1InputIndex]);
+  }
+  if (phase === 'phase2') {
+    baseCorrectPlatforms.forEach(p => s.add(p));
+    phase2Auto.forEach(p => s.add(p));
+    phase2Selected.forEach(p => s.add(p));
+  }
+  return s;
+}
+
+function getNeed() {
+  return 5 - baseCorrect - phase2Auto.length;
+}
+
+function renderInstruction() {
+  if (error) {
+    $instructionCard.innerHTML = `
+      <div class="step-badge">错误</div>
+      <div class="instruction-text">输入数据矛盾，不可能成立！</div>
+      <div class="instruction-detail">请点撤销重新输入，或点重新开始。</div>
+      <div class="input-row"><button class="btn btn-outline" onclick="undoStep()">撤销</button><button class="btn btn-outline" onclick="resetAll()">重新开始</button></div>`;
+    return;
+  }
+
+  if (phase === 'done') {
+    const answer = [];
+    for (let i = 0; i < 9; i++) if (platforms[i] === 'correct') answer.push(L(i+1));
+    $instructionCard.innerHTML = `
+      <div class="step-badge">完成</div>
+      <div class="instruction-text">答案：<strong>${answer.join('、')}</strong></div>
+      <div class="instruction-detail">共 ${history.length} 次操作</div>
+      <div class="input-row">
+        <button class="btn btn-outline" onclick="undoStep()">撤销</button>
+        <button class="btn btn-outline" onclick="resetAll()">重新开始</button>
+      </div>`;
+    return;
+  }
+
+  if (phase === 'phase1') {
+    renderPhase1();
+  } else if (phase === 'phase2') {
+    renderPhase2();
+  }
+}
+
+// ── Phase 1: Sequential with progress bar ──
+
+function renderPhase1() {
+  const allDone = phase1InputIndex >= 5;
+  const cur = Math.min(phase1InputIndex, 4);
+  const testPlat = phase1Order[cur];
+  const curLabel = L(testPlat);
+
+  // Build 5 progress slots
+  let slots = '';
+  for (let i = 0; i < 5; i++) {
+    const p = phase1Order[i];
+    const filled = i < phase1InputIndex;
+    const active = i === phase1InputIndex && !allDone;
+    let cls = 'p1-slot';
+    if (active) cls += ' active';
+    if (filled) cls += ' filled';
+    slots += `
+      <div class="${cls}">
+        <div class="p1-label">${L(p)}</div>
+        <div class="p1-val">${filled ? batchValues[i] : (active ? '?' : '')}</div>
+      </div>`;
+  }
+
+  // Determine valid numbers for next input
+  const validNums = getValidPhase1Inputs();
+
+  // Number buttons for current input — gray out impossible values
+  let numBtns1 = '';
+  for (let n = 1; n <= 4; n++) {
+    const ok = validNums === null || validNums.includes(n);
+    numBtns1 += `<button class="num-btn" onclick="inputPhase1(${n})" ${ok ? '' : 'disabled'}>${n}</button>`;
+  }
+
+  $instructionCard.innerHTML = `
+    <div class="step-badge">阶段一</div>
+    <div class="instruction-text">A2B3 站满，剩下一人从 C 到 5 测试</div>
+    <div class="p1-slots">${slots}</div>
+    ${!allDone ? `
+      <div class="feedback-label">怪物数量：</div>
+      <div class="num-buttons">${numBtns1}</div>
+      <div class="input-row">
+        <button class="btn btn-outline" onclick="undoPhase1Input()" ${phase1InputIndex === 0 ? 'disabled' : ''}>撤销</button>
+        <button class="btn btn-outline" onclick="resetAll()">重新开始</button>
+      </div>
+    ` : ''}
+  `;
+}
+
+function inputPhase1(n) {
+  if (phase1InputIndex >= 5 || n < 1 || n > 4) return;
+  // Block invalid inputs (gray buttons can still be tapped via edge cases)
+  const validNums = getValidPhase1Inputs();
+  if (validNums !== null && !validNums.includes(n)) return;
+  batchValues[phase1InputIndex] = n;
+  phase1InputIndex++;
+
+  // Auto-fill: check if remaining platforms are logically determined
+  tryAutoFillPhase1();
+
+  if (phase1InputIndex >= 5) {
+    analyzePhase1();
+  } else {
+    render();
+  }
+}
+
+function getValidPhase1Inputs() {
+  if (phase1InputIndex === 0) return null;
+  if (phase1InputIndex >= 5) return [];
+
+  const soFar = batchValues.slice(0, phase1InputIndex);
+  const K = phase1InputIndex;
+  const remaining = 5 - K;
+
+  // Last value: just check if the complete sequence is valid
+  if (K === 4) {
+    const results = [];
+    for (let v = 1; v <= 4; v++) {
+      const full = [...soFar, v];
+      const unique = new Set(full);
+      if (unique.size === 1) {
+        if (full[0] === 1 || full[0] === 4) results.push(v);
+      } else if (unique.size === 2) {
+        const min = Math.min(...full), max = Math.max(...full);
+        if (max - min === 1 && full.filter(x => x === max).length === 5 - min) results.push(v);
+      }
+    }
+    return results;
+  }
+
+  // Try each possible next value and check if any interpretation remains viable
+  const results = [];
+  for (let v = 1; v <= 4; v++) {
+    const testValues = [...soFar, v];
+    const unique = new Set(testValues);
+
+    if (unique.size === 1) {
+      const X = v;
+      let ok = false;
+      if (5 - X >= 0 && 5 - X <= remaining - 1) ok = true;
+      if (X === 1) {
+        if (5 - (K+1) >= 0 && 5 - (K+1) <= remaining - 1) ok = true;
+      } else if (X > 1) {
+        if (5 - (X-1) - (K+1) >= 0 && 5 - (X-1) - (K+1) <= remaining - 1) ok = true;
+      }
+      if (ok) results.push(v);
+    } else if (unique.size === 2) {
+      const min = Math.min(...testValues);
+      const max = Math.max(...testValues);
+      if (max - min === 1) {
+        const c = min;
+        const countMax = testValues.filter(x => x === max).length;
+        const need = (5 - c) - countMax;
+        if (need >= 0 && need <= remaining - 1) results.push(v);
+      }
+    }
+  }
+  return results;
+}
+
+function tryAutoFillPhase1() {
+  if (phase1InputIndex >= 5 || phase1InputIndex < 2) return;
+
+  const soFar = batchValues.slice(0, phase1InputIndex);
+  const unique = new Set(soFar);
+  const K = phase1InputIndex;
+  const remaining = 5 - K;
+
+  if (unique.size >= 2) {
+    // ── Two different values: c determined ──
+    const min = Math.min(...soFar);
+    const max = Math.max(...soFar);
+    const bad = soFar.some(v => v !== min && v !== max);
+    if (bad || max - min !== 1) return;
+
+    const c = min;
+    const countMax = soFar.filter(v => v === max).length;
+    const need = (5 - c) - countMax;
+
+    if (need < 0 || need > remaining) return;
+    if (need === 0) { fillRemaining(min); return; }
+    if (need === remaining) { fillRemaining(max); return; }
+
+  } else {
+    // ── All same value X: test both possible c ──
+    const X = soFar[0];
+
+    // Possible interpretations:
+    // (a) X = min = c (all tested are wrong) → c = X, need 5-X correct
+    // (b) X = max = c+1 (all tested are correct) → c = X-1, need 6-X correct
+
+    const viable = [];
+
+    // Case (a): X = min = c
+    const cA = X;
+    const needA = 5 - cA;  // total correct needed in bottom
+    const foundA = 0;       // all min = wrong
+    const remA = needA - foundA;
+    if (remA >= 0 && remA <= remaining) viable.push({ c: cA, max: (cA === 4 ? 4 : cA + 1), remCorrect: remA });
+
+    // Case (b): X = max = c+1
+    // When X=1: c=0 is possible (feedback 0 not available, all show 1)
+    // When X=4: cap makes c=4 also show all=4
+    if (X === 1) {
+      // c=0: all feedback=1. Need 5 correct, found K, need 5-K in remaining
+      const cB = 0, needB = 5, foundB = K, remB = needB - foundB;
+      if (remB >= 0 && remB <= remaining) viable.push({ c: cB, max: 1, remCorrect: remB });
+    } else {
+      const cB = X - 1;
+      const needB = 5 - cB;
+      const foundB = K;
+      const remB = needB - foundB;
+      if (remB >= 0 && remB <= remaining) viable.push({ c: cB, max: X, remCorrect: remB });
+    }
+
+    if (viable.length !== 1) return;
+
+    const v = viable[0];
+    if (v.remCorrect === 0) fillRemaining(v.c);
+    else if (v.remCorrect === remaining) fillRemaining(v.max);
+    // Cap case: c=4, min=max=4 → all remaining also 4
+    else if (v.c === 4 && v.max === 4) fillRemaining(4);
+  }
+}
+
+function fillRemaining(val) {
+  for (let i = phase1InputIndex; i < 5; i++) batchValues[i] = val;
+  phase1InputIndex = 5;
+}
+
+function undoPhase1Input() {
+  if (phase1InputIndex > 0) {
+    phase1InputIndex--;
+    batchValues[phase1InputIndex] = 0;
+    render();
+  }
+}
+
+// ── Phase 2: Interactive selection ──
+function renderPhase2() {
+  if (!pickNextPair()) {
+    finalizePlatform4();
+    render();
+    return;
+  }
+
+  const step = 5 + phase2History.length + 1;
+  const need = getNeed(); // how many unknown top platforms to pick
+  const totalTop = need + phase2Auto.length; // total top platforms in test
+  const selected = phase2Selected.length;
+  const maxSelect = need;
+
+  // Build suggested platforms for highlighting
+  const suggested = getSuggestedPlatforms();
+
+  // Build top row selectable buttons
+  let topBtns = '';
+  for (let i = 1; i <= 4; i++) {
+    const known = platforms[i-1] !== 'unknown';
+    const selected = phase2Selected.includes(i);
+    const recommend = suggested.includes(i);
+    let cls = 'sel-plat';
+    if (known && platforms[i-1] === 'correct') cls += ' known-correct';
+    else if (known && platforms[i-1] === 'wrong') cls += ' known-wrong';
+    else if (selected) cls += ' selected';
+    else if (recommend) cls += ' recommend';
+    else cls += ' unknown';
+
+    const disabled = known ? 'disabled' : '';
+    const click = known ? '' : `onclick="togglePhase2Select(${i})"`;
+    const tag = known ? (platforms[i-1] === 'correct' ? '锁' : '排') : (selected ? '选' : (recommend ? '推荐' : ''));
+    topBtns += `<button class="${cls}" ${click} ${disabled}>${L(i)}${tag ? '<span class=sel-tag>'+tag+'</span>' : ''}</button>`;
+  }
+
+  // Build explanation for current selection
+  let explain = '';
+  let showFeedback = false;
+  if (selected === need) {
+    showFeedback = true;
+    const selLabels = phase2Selected.map(p => L(p)).join('、');
+    // Feedback: 5 never appears (game ends). Max = totalKnown + need - 1 ≤ 4
+    // X = correct among selected unknowns (0 to need-1). fb = totalKnown + X.
+    const t = baseCorrect + phase2Auto.length;
+    const maxFb = t + need - 1; // one short of all-correct (which would end the game)
+
+    if (need >= 2) {
+      if (need >= 3) {
+        explain = `反馈 <b>${t}</b> → 全排除；反馈 <b>${t+1}</b> → 一个锁定；反馈 <b>${t+2}</b> → 两个锁定。`;
+      } else {
+        explain = `反馈 <b>${t}</b> → 全排除；反馈 <b>${maxFb}</b> → 一个锁定。`;
+      }
+    } else {
+      explain = `反馈 <b>${t}</b> → 排除。`;
+    }
+  } else {
+    explain = '';
+  }
+
+  // Build suggestion based on last result
+  let suggestion = '';
+  if (phase2History.length > 0) {
+    suggestion = buildSuggestion();
+  }
+
+  // Only enable buttons in valid range
+  const totalKnown2 = baseCorrect + phase2Auto.length;
+  const knownTopWrong = [1,2,3,4].filter(p => platforms[p-1] === 'wrong').length;
+  const remainingTop = 4 - phase2Selected.length - phase2Auto.length - knownTopWrong;
+  // Min correct among selected = max(0, still needed - max possible from remaining)
+  const stillNeed = correctIn1to4 - phase2Auto.length;
+  const minTopCorrect = Math.max(0, stillNeed - remainingTop);
+  const minFb = Math.max(1, totalKnown2 + minTopCorrect);
+  const maxFb = totalKnown2 + phase2Selected.length - 1;
+  let numBtns = '';
+  for (let n = 1; n <= 4; n++) {
+    const valid = showFeedback && n >= minFb && n <= maxFb;
+    numBtns += `<button class="num-btn" onclick="setFeedback(${n})" ${valid ? '' : 'disabled'}>${n}</button>`;
+  }
+
+  // Build the 5-person lineup chips
+  const allStand = [...baseCorrectPlatforms, ...phase2Auto, ...phase2Selected];
+  const lineupChips = allStand.map(p => {
+    const isBase = baseCorrectPlatforms.includes(p);
+    const isAuto = phase2Auto.includes(p);
+    const style = isBase ? 'background:#ecfdf5;border-color:#6ee7b7;color:#059669;'
+                : isAuto ? 'background:#d1fae5;border-color:#6ee7b7;color:#059669;'
+                : 'background:#dbeafe;border-color:#93c5fd;color:#2563eb;';
+    return `<span class="plat-chip" style="${style}">${L(p)}${isAuto ? '' : ''}</span>`;
+  }).join('');
+
+  $instructionCard.innerHTML = `
+    <div class="step-badge">第 ${step} 次</div>
+    <div class="instruction-text">现在上排选 <strong>${need} 人</strong></div>
+    <div class="sel-row">${topBtns}</div>
+    <div class="platforms-to-stand" style="margin-top:8px;">${lineupChips}</div>
+    <div class="sel-explain">${explain}</div>
+    ${suggestion ? '<div class="suggestion">'+suggestion+'</div>' : ''}
+    <div class="feedback-label">${showFeedback ? '选满了，怪物数量：' : `还需选 ${need - selected} 人`}</div>
+    <div class="num-buttons">${numBtns}</div>
+    <div class="input-row">
+      <button class="btn btn-outline" onclick="undoStep()" ${phase2History.length === 0 ? 'disabled' : ''}>撤销</button>
+      <button class="btn btn-outline" onclick="resetAll()">重新开始</button>
+    </div>`;
+}
+
+function getSuggestedPlatforms() {
+  if (phase2History.length === 0) return [];
+  const unknown = [1,2,3,4].filter(p => platforms[p-1] === 'unknown');
+  const need = getNeed();
+  if (unknown.length === 0 || need === 0) return [];
+
+  // Two overlapping one-correct pair tests → cross-validate
+  if (phase2History.length >= 2 && need === 2) {
+    const t1 = phase2History[phase2History.length - 2];
+    const t2 = phase2History[phase2History.length - 1];
+    if (t1.selected.length === 2 && t1.topCorrectInTest === 1 &&
+        t2.selected.length === 2 && t2.topCorrectInTest === 1) {
+      const shared = t1.selected.find(p => t2.selected.includes(p));
+      if (shared !== undefined) {
+        // The two non-shared platforms: one correct, one wrong
+        const other1 = t1.selected.find(p => p !== shared);
+        const other2 = t2.selected.find(p => p !== shared);
+        // Test the two non-shared together: if fb=totalKnown → both wrong (shared+remaining correct)
+        // if fb=totalKnown+2→5(game over) → both correct. Never fb=totalKnown+1.
+        if (other1 !== undefined && other2 !== undefined) return [other1, other2];
+      }
+    }
+  }
+
+  // Last test: exactly one wrong, AND unselected was auto-marked → pick 2 from last to narrow
+  const last = phase2History[phase2History.length - 1];
+  if (last && last.selected.length >= 2 &&
+      last.topCorrectInTest === last.selected.length - 1 && need >= 2 &&
+      phase2Auto.length > 0) {
+    return last.selected.slice(0, Math.min(2, need));
+  }
+
+  // One pair test with one-correct, unselected still unknown → cross-validate
+  if (last && last.selected.length === 2 && last.topCorrectInTest === 1 && need === 2) {
+    const untested = unknown.find(p => !last.selected.includes(p));
+    if (untested) {
+      const keep = last.selected[0], alt = last.selected[1];
+      const best = Math.abs(keep - untested) <= Math.abs(alt - untested) ? keep : alt;
+      return [best, untested];
+    }
+  }
+
+  // Default
+  return unknown.slice(0, need);
+}
+
+function buildSuggestion() {
+  const unknown = [1,2,3,4].filter(p => platforms[p-1] === 'unknown');
+  if (unknown.length === 0) return '';
+
+  const knownCorrectTop = [1,2,3,4].filter(p => platforms[p-1] === 'correct').length;
+  const remainingCorrect = correctIn1to4 - knownCorrectTop;
+  const need = getNeed();
+  const totalKnown = baseCorrect + phase2Auto.length;
+
+  if (remainingCorrect === 0) {
+    return `${Ls(unknown)} 全排除。`;
+  }
+  if (remainingCorrect === unknown.length) {
+    return `${Ls(unknown)} 全锁定。`;
+  }
+
+  let html = '';
+
+  // Last test: one wrong among N selected AND unselected was auto-marked
+  const lastTest2 = phase2History[phase2History.length - 1];
+  if (lastTest2 && lastTest2.selected.length >= 2 &&
+      lastTest2.topCorrectInTest === lastTest2.selected.length - 1 && need >= 2 &&
+      phase2Auto.length > 0) {
+    const pick2 = lastTest2.selected.slice(0, Math.min(2, need));
+    html += `建议选 <span style=\"color:#2563eb;font-weight:700;\">${Ls(pick2)}</span> 定位排除者。<br>`;
+    html += `反馈 <b>${totalKnown + pick2.length - 1}</b> → 全锁定(剩下排除)；`;
+    html += `反馈 <b>${totalKnown + 1}</b> → 一对一排除(再测${L(pick2[0])})。`;
+    return html;
+  }
+
+  // Two overlapping one-correct pair tests → test the two non-shared together
+  if (phase2History.length >= 2 && need === 2) {
+    const t1 = phase2History[phase2History.length - 2];
+    const t2 = phase2History[phase2History.length - 1];
+    if (t1.selected.length === 2 && t1.topCorrectInTest === 1 &&
+        t2.selected.length === 2 && t2.topCorrectInTest === 1) {
+      const shared = t1.selected.find(p => t2.selected.includes(p));
+      if (shared !== undefined) {
+        const other1 = t1.selected.find(p => p !== shared);
+        const other2 = t2.selected.find(p => p !== shared);
+        if (other1 !== undefined && other2 !== undefined) {
+          html += `建议选 <span style="color:#2563eb;font-weight:700;">${L(other1)} + ${L(other2)}</span> 定胜负。<br>`;
+          html += `反馈 <b>${totalKnown}</b> → 都排除(剩下两个锁定)。`;
+          return html;
+        }
+      }
+    }
+  }
+
+  // After one pair test with one-correct: pick overlap + untested
+  const lastTest = phase2History[phase2History.length - 1];
+  if (lastTest && lastTest.selected.length === 2 && lastTest.topCorrectInTest === 1 && need === 2) {
+    const fromLast = lastTest.selected[0];
+    const all4 = [1,2,3,4];
+    const untested = all4.find(p => !lastTest.selected.includes(p));
+    if (untested) {
+      const hi1 = Math.min(totalKnown + 2, 4);
+      html += `建议选 <span style="color:#2563eb;font-weight:700;">${L(fromLast)} + ${L(untested)}</span> 交叉验证。<br>`;
+      html += `反馈 <b>${hi1}</b> → 都对(上次另一个排除)；<br>`;
+      html += `反馈 <b>${totalKnown}</b> → 都错(上次另一个锁定)；<br>`;
+      html += `反馈 <b>${totalKnown + 1}</b> → 一对一排除(下轮必出)。`;
+      return html;
+    }
+  }
+
+  // General: pick first N unknowns
+  const pick = unknown.slice(0, need);
+  const maxFbSug = totalKnown + need - 1;
+  if (need >= 2 && pick.length >= 2) {
+    html += `建议选 <span style="color:#2563eb;font-weight:700;">${Ls(pick)}</span>。<br>`;
+    html += `反馈 <b>${maxFbSug}</b> → ${need-1}锁定；`;
+    html += `反馈 <b>${totalKnown + 1}</b> → 一个锁定；`;
+    html += `反馈 <b>${totalKnown}</b> → 全排除。`;
+  } else if (need === 1) {
+    html += `建议选 <span style="color:#2563eb;font-weight:700;">${L(pick[0])}</span>。<br>`;
+    html += `反馈 <b>${totalKnown}</b> → 排除。`;
+  }
+
+  return html;
+}
+
+function renderHistory() {
+  if (history.length === 0) {
+    $historyCard.style.display = 'none';
+    return;
+  }
+  $historyCard.style.display = '';
+  $historyBody.innerHTML = history.map((h, i) => `
+    <tr>
+      <td><strong>${i+1}</strong></td>
+      <td>${Array.isArray(h.positions) ? h.positions.map(p => typeof p === 'number' ? L(p) : p).join('、') : h.positions}</td>
+      <td>${h.feedback}</td>
+      <td class="deduction">${h.deduction}</td>
+    </tr>
+  `).join('');
+}
+
+function renderResult() {
+  $result.classList.remove('show');
+}
+
+// ── Phase 1: Batch analysis ──
+function analyzePhase1() {
+  const values = [...batchValues];
+
+  // Add all 5 tests to history
+  history = [];
+  for (let i = 0; i < 5; i++) {
+    const testPlat = phase1Order[i];
+    history.push({
+      step: i + 1,
+      type: 'phase1',
+      positions: [1, 2, 3, 4, testPlat],
+      feedback: values[i],
+      deduction: `站 ${Ls([1,2,3,4])}、${L(testPlat)}，反馈 ${values[i]}`
+    });
+  }
+
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const uniqueValues = new Set(values);
+
+  // ── Validation ──
+  let valid = true;
+  const countMax = values.filter(v => v === max).length;
+  const countMin = values.filter(v => v === min).length;
+
+  if (uniqueValues.size > 2) {
+    valid = false;
+  } else if (uniqueValues.size === 1) {
+    // all=1 (c=0) or all=4 (c=4 with feedback capped at 4)
+    if (min !== 1 && min !== 4) valid = false;
+  } else {
+    if (max - min !== 1) valid = false;
+    else if (countMax !== 5 - min) valid = false;
+  }
+
+  if (!valid) {
+    error = true;
+    for (let i = 0; i < 9; i++) platforms[i] = 'wrong';
+    $analysis.innerHTML = `<strong>输入数据矛盾！</strong>当前反馈值不满足9台中恰有5台锁定。请重新调整数字。`;
+    $analysis.classList.add('show', 'error');
+    phase = 'done';
+    render();
+    return;
+  }
+
+  error = false;
+
+  // ── Normal analysis ──
+  if (uniqueValues.size === 1) {
+    if (min === 1) {
+      for (let i = 0; i < 4; i++) platforms[i] = 'wrong';
+      for (let i = 4; i < 9; i++) platforms[i] = 'correct';
+      correctIn1to4 = 0;
+      $analysis.innerHTML = '';
+    } else {
+      // all=4: c=4 (feedback capped at 4)
+      for (let i = 0; i < 4; i++) platforms[i] = 'correct';
+      [5,6,7,8,9].forEach((p,i) => { platforms[p-1] = values[i] === 4 ? 'wrong' : 'correct'; });
+      // Actually with all=4, c=4, countMax=0 (since feedback capped). All {5-9} show 4.
+      // The one correct in {5-9} would have shown 5 if not capped. With cap: all show 4.
+      // We can't tell which one is correct from feedback alone!
+      // This is an ambiguous case. Mark all {5-9} as unknown, top all correct.
+      correctIn1to4 = 4;
+      for (let i = 4; i < 9; i++) platforms[i] = 'unknown';
+      $analysis.innerHTML = '';
+    }
+    $analysis.classList.add('show');
+    phase = 'done';
+    render();
+    return;
+  }
+
+  correctIn1to4 = min;
+  for (let i = 0; i < 5; i++) {
+    const p = phase1Order[i];
+    platforms[p - 1] = (values[i] === max) ? 'correct' : 'wrong';
+  }
+
+  const correctIn5to9 = phase1Order.filter((p, i) => values[i] === max);
+  const wrongIn5to9 = phase1Order.filter((p, i) => values[i] === min);
+
+  $analysis.innerHTML = '';
+  $analysis.classList.remove('show');
+
+  if (correctIn1to4 === 0) {
+    for (let i = 0; i < 4; i++) platforms[i] = 'wrong';
+    phase = 'done';
+  } else if (correctIn1to4 === 4) {
+    for (let i = 0; i < 4; i++) platforms[i] = 'correct';
+    phase = 'done';
+  } else {
+    startPhase2();
+  }
+
+  render();
+}
+
+function startPhase2() {
+  phase = 'phase2';
+  baseCorrectPlatforms = [5,6,7,8,9].filter(p => platforms[p-1] === 'correct');
+  baseCorrect = baseCorrectPlatforms.length;
+  // Auto-include known-correct top platforms to help fill the 5 spots
+  phase2Auto = [1,2,3,4].filter(p => platforms[p-1] === 'correct');
+  phase2Selected = [];
+  phase2History = [];
+}
+
+function togglePhase2Select(p) {
+  if (phase !== 'phase2') return;
+  // Can only select unknown top platforms; known-correct are auto-included
+  if (platforms[p-1] !== 'unknown') return;
+  const idx = phase2Selected.indexOf(p);
+  if (idx >= 0) {
+    phase2Selected.splice(idx, 1);
+  } else {
+    const need = getNeed();
+    if (phase2Selected.length >= need) return;
+    phase2Selected.push(p);
+    phase2Selected.sort((a,b) => a-b);
+  }
+  render();
+}
+
+function pickNextPair() {
+  // Check if we can deduce remaining
+  const unknown = [1,2,3,4].filter(p => platforms[p-1] === 'unknown');
+  if (unknown.length === 0) return false;
+
+  const knownCorrectTop = [1,2,3,4].filter(p => platforms[p-1] === 'correct').length;
+  const remainingCorrect = correctIn1to4 - knownCorrectTop;
+
+  if (remainingCorrect === 0) {
+    unknown.forEach(p => { platforms[p-1] = 'wrong'; });
+    return false;
+  }
+  if (remainingCorrect === unknown.length) {
+    unknown.forEach(p => { platforms[p-1] = 'correct'; });
+    return false;
+  }
+  return true; // still need testing
+}
+
+// ── Phase 2 logic (参照法) ──
+function confirmPhase2(feedback) {
+  const need = getNeed();
+  if (phase2Selected.length !== need) return;
+
+  const totalKnown = baseCorrect + phase2Auto.length;
+  const topCorrectInTest = feedback - totalKnown;
+  // Max correct among selected = need - 1 (need = all correct → game ends)
+  const maxTopCorrect = phase2Selected.length - 1;
+
+  if (feedback < 1 || feedback > 4 || topCorrectInTest < 0 || topCorrectInTest > maxTopCorrect) {
+    error = true;
+    for (let i = 0; i < 9; i++) platforms[i] = 'wrong';
+    const realMin = totalKnown;
+    const realMax = Math.min(4, totalKnown + maxTopCorrect);
+    $analysis.innerHTML = `<strong>输入数据矛盾！</strong>已知 ${totalKnown} 锁定，反馈应在 ${realMin}~${realMax} 之间。请撤销检查。`;
+    $analysis.classList.add('show', 'error');
+    phase = 'done';
+    render();
+    return;
+  }
+
+  error = false;
+
+  const selLabels = phase2Selected.map(p => L(p)).join('、');
+  const allLabels = [...phase2Auto, ...phase2Selected].map(p => L(p)).join('、');
+  const standSet = [...baseCorrectPlatforms, ...phase2Auto, ...phase2Selected];
+  let deduction;
+
+  // Note: topCorrect = need (all selected correct) → game ends, never reaches here
+  if (topCorrectInTest === 0) {
+    phase2Selected.forEach(p => { platforms[p-1] = 'wrong'; });
+    deduction = `反馈 ${feedback}，已知 ${totalKnown} + 0 = ${feedback}，所以 ${selLabels} 全排除。`;
+  } else if (topCorrectInTest === maxTopCorrect) {
+    // Exactly one wrong → remaining unknown must be correct
+    const remainingUnknown = [1,2,3,4].filter(p =>
+      platforms[p-1] === 'unknown' && !phase2Selected.includes(p)
+    );
+    if (remainingUnknown.length === 1) {
+      platforms[remainingUnknown[0] - 1] = 'correct';
+      phase2Auto = [1,2,3,4].filter(p => platforms[p-1] === 'correct');
+    }
+    deduction = `反馈 ${feedback}，已知 ${totalKnown} + ${topCorrectInTest} → ${selLabels} 中 ${topCorrectInTest} 锁定 1 排除，` +
+      (remainingUnknown.length === 1 ? `未选的 ${L(remainingUnknown[0])} 必锁定。` : '') + `需再测找出排除的那个。`;
+  } else {
+    // Partial match (need=3, topCorrect=1 → 2 wrong, but this case shouldn't happen with valid data)
+    // Keep selected as unknown, let user test further
+    deduction = `反馈 ${feedback}，已知 ${totalKnown} + ${topCorrectInTest} → ${selLabels} 中 ${topCorrectInTest} 对。继续缩小范围。`;
+  }
+
+  history.push({
+    step: history.length + 1,
+    type: 'phase2',
+    positions: standSet,
+    feedback,
+    deduction
+  });
+
+  phase2History.push({
+    selected: [...phase2Selected],
+    topCorrectInTest,
+    feedback
+  });
+
+  phase2Selected = [];
+
+  if (!pickNextPair()) {
+    finalizePlatform4();
+  }
+}
+
+function finalizePlatform4() {
+  if (phase === 'done') return;
+  const knownCorrectTop = [1,2,3,4].filter(p => platforms[p-1] === 'correct').length;
+  const unknownTop = [1,2,3,4].filter(p => platforms[p-1] === 'unknown');
+  const remaining = correctIn1to4 - knownCorrectTop;
+
+  if (unknownTop.length > 0 && (remaining === 0 || remaining === unknownTop.length)) {
+    unknownTop.forEach(p => {
+      platforms[p-1] = remaining === unknownTop.length ? 'correct' : 'wrong';
+    });
+    history.push({
+      step: history.length + 1,
+      type: 'phase2',
+      positions: ['推算'],
+      feedback: '-',
+      deduction: `前4台共 ${correctIn1to4} 锁定，已知 ${knownCorrectTop} 个，推算出 ${Ls(unknownTop)}${remaining === unknownTop.length ? '全锁定' : '全排除'}`
+    });
+  }
+
+  phase = 'done';
+}
+
+// ── Undo ──
+function undoStep() {
+  error = false;
+  $analysis.classList.remove('show', 'error');
+  $analysis.innerHTML = '';
+
+  if (phase === 'done') {
+    undoFromDone();
+  } else if (phase === 'phase2') {
+    if (phase2History.length > 0) {
+      undoPhase2Test();
+    } else {
+      // Back to phase 1
+      for (let i = 0; i < 9; i++) platforms[i] = 'unknown';
+      correctIn1to4 = null;
+      phase = 'phase1';
+      phase1InputIndex = 5;
+      history = [];
+      phase2History = [];
+      phase2Selected = [];
+    }
+  }
+
+  render();
+}
+
+function undoFromDone() {
+  const last = history[history.length - 1];
+  if (last && last.type === 'phase2') {
+    history.pop();
+    // Restore the last phase2 test's state
+    if (phase2History.length > 0) {
+      const prev = phase2History.pop();
+      // Reset platforms from this test
+      prev.selected.forEach(p => { platforms[p-1] = 'unknown'; });
+      phase2Selected = [];
+      phase = 'phase2';
+    } else {
+      phase = 'phase2';
+      phase2Selected = [];
+    }
+    [1,2,3,4].forEach(p => { if (platforms[p-1] !== 'unknown' && !phase2Selected.includes(p)) platforms[p-1] = 'unknown'; });
+    const deducedEntry = history.find(h => h.positions[0] === '推算');
+    if (deducedEntry) {
+      [1,2,3,4].forEach(p => { if (platforms[p-1] !== 'unknown' && !phase2Selected.includes(p)) platforms[p-1] = 'unknown'; });
+      // Remove deduced entry if still in history
+      const idx = history.indexOf(deducedEntry);
+      if (idx >= 0) history.splice(idx, 1);
+    }
+  } else {
+    // Was done from phase 1
+    history = [];
+    for (let i = 0; i < 9; i++) platforms[i] = 'unknown';
+    correctIn1to4 = null;
+    phase = 'phase1';
+    phase1InputIndex = Math.max(0, phase1InputIndex - 1);
+  }
+}
+
+function undoPhase2Test() {
+  if (phase2History.length === 0) return;
+  const prev = phase2History.pop();
+  history.pop();
+  // Reset platforms that were marked in this test
+  prev.selected.forEach(p => { platforms[p-1] = 'unknown'; });
+  phase2Selected = [];
+}
+
+// ── Reset ──
+function resetAll() {
+  platforms = Array(PLATFORM_COUNT).fill('unknown');
+  history = [];
+  phase = 'phase1';
+  error = false;
+  batchValues = [0, 0, 0, 0, 0];
+  phase1InputIndex = 0;
+  correctIn1to4 = null;
+  baseCorrectPlatforms = [];
+  baseCorrect = 0;
+  phase2Auto = [];
+  phase2Selected = [];
+  phase2History = [];
+  // Speed mode reset
+  if (speedMode) initSpeedMode();
+
+  $analysis.classList.remove('show', 'error');
+  $analysis.innerHTML = '';
+
+  render();
+}
+
+// ── Phase 2: Number button handler ──
+function setFeedback(n) {
+  if (phase !== 'phase2' || phase2Selected.length !== getNeed()) return;
+  // Brief visual pulse
+  const btns = document.querySelectorAll('.num-btn');
+  if (btns[n]) {
+    btns[n].style.background = '#dbeafe';
+    btns[n].style.borderColor = '#3b82f6';
+    btns[n].style.transform = 'scale(.93)';
+    setTimeout(() => {
+      btns[n].style.background = '';
+      btns[n].style.borderColor = '';
+      btns[n].style.transform = '';
+    }, 150);
+  }
+  confirmPhase2(n);
+  render();
+}
+
+// ── Speed Mode: Optimal Decision Tree ──
+let speedMode = false;
+let allCombos = [];
+let possibleWorlds = [];
+let speedHistory = [];
+let speedSuggested = [];
+
+function toggleSpeedMode() {
+  speedMode = !document.getElementById('speedMode').checked;
+  resetAll();
+  if (speedMode) initSpeedMode();
+  render();
+}
+
+function initSpeedMode() {
+  allCombos = [];
+  for (let a=1;a<=5;a++) for(let b=a+1;b<=6;b++) for(let c=b+1;c<=7;c++) for(let d=c+1;d<=8;d++) for(let e=d+1;e<=9;e++)
+    allCombos.push([a,b,c,d,e]);
+  possibleWorlds = [...allCombos];
+  speedHistory = [];
+  speedSuggested = suggestOptimal();
+}
+
+function fbMatch(test, world) {
+  const w = new Set(world);
+  return test.filter(p => w.has(p)).length;
+}
+
+function suggestOptimal() {
+  if (possibleWorlds.length <= 1) return possibleWorlds[0] || [1,2,3,4,5];
+  let best = null, bestE = Infinity, bestW = Infinity;
+  const N = possibleWorlds.length;
+  for (const test of allCombos) {
+    const bins = {};
+    for (const w of possibleWorlds) {
+      const k = fbMatch(test, w);
+      bins[k] = (bins[k] || 0) + 1;
+    }
+    const E = Object.values(bins).reduce((s, n) => s + n * n, 0) / N;
+    const W = Math.max(...Object.values(bins));
+    if (E < bestE - 0.001 || (Math.abs(E - bestE) < 0.001 && W < bestW)) {
+      bestE = E; bestW = W; best = test;
+    }
+  }
+  return best || [1,2,3,4,5];
+}
+
+function confirmSpeedFeedback(fb) {
+  if (fb < 1 || fb > 4) return;
+  speedHistory.push({test: [...speedSuggested], feedback: fb});
+  possibleWorlds = possibleWorlds.filter(w => fbMatch(speedSuggested, w) === fb);
+  if (possibleWorlds.length <= 1) {
+    if (possibleWorlds.length === 1) speedSuggested = possibleWorlds[0];
+    phase = 'done';
+  } else {
+    speedSuggested = suggestOptimal();
+  }
+  render();
+}
+
+function renderSpeedMode() {
+  if (possibleWorlds.length === 0) { possibleWorlds = [...allCombos]; speedHistory = []; speedSuggested = suggestOptimal(); }
+  if (possibleWorlds.length === 1) {
+    const ans = possibleWorlds[0].map(p => L(p)).join(' ');
+    const ansDisplay = possibleWorlds[0].map(p => L(p)).join('、');
+    $instructionCard.innerHTML = `
+      <div class="step-badge">完成</div>
+      <div class="instruction-text">答案：<strong>${ansDisplay}</strong></div>
+      <div class="instruction-detail">共 ${speedHistory.length} 次测试</div>
+      <div class="input-row">
+        <button class="btn btn-outline" onclick="copySpeedTest()">复制站位</button>
+        <button class="btn btn-outline" onclick="undoSpeed()" ${speedHistory.length===0?'disabled':''}>撤销</button>
+        <button class="btn btn-outline" onclick="resetAll()">重新开始</button>
+      </div>`;
+    return;
+  }
+
+  // Valid feedback values
+  const fbCounts = {};
+  for (const w of possibleWorlds) {
+    const f = fbMatch(speedSuggested, w);
+    fbCounts[f] = (fbCounts[f] || 0) + 1;
+  }
+  const validFbs = Object.keys(fbCounts).map(Number).filter(f => f >= 1 && f <= 4);
+
+  let numBtns = '';
+  for (let n = 1; n <= 4; n++) {
+    const ok = validFbs.includes(n);
+    numBtns += `<button class="num-btn" onclick="speedInput(${n})" ${ok ? '' : 'disabled'}>${n}</button>`;
+  }
+
+  $instructionCard.innerHTML = `
+    <div class="step-badge">第 ${speedHistory.length + 1} 次</div>
+    <div class="instruction-text">请站：<strong>${speedSuggested.map(p => L(p)).join('、')}</strong></div>
+    <div class="feedback-label">怪物数量：</div>
+    <div class="num-buttons">${numBtns}</div>
+    <div class="input-row">
+      <button class="btn btn-outline" onclick="copySpeedTest()">复制站位</button>
+      <button class="btn btn-outline" onclick="undoSpeed()" ${speedHistory.length===0?'disabled':''}>撤销</button>
+      <button class="btn btn-outline" onclick="resetAll()">重新开始</button>
+    </div>`;
+}
+
+function speedInput(n) { confirmSpeedFeedback(n); }
+
+function copySpeedTest() {
+  const text = speedSuggested.map(p => L(p)).join(' ');
+  navigator.clipboard.writeText(text).catch(() => {});
+}
+function undoSpeed() {
+  if (speedHistory.length === 0) return;
+  speedHistory.pop();
+  possibleWorlds = [...allCombos];
+  for (const h of speedHistory)
+    possibleWorlds = possibleWorlds.filter(w => fbMatch(h.test, w) === h.feedback);
+  speedSuggested = possibleWorlds.length <= 1 ? (possibleWorlds[0] || [1,2,3,4,5]) : suggestOptimal();
+  phase = possibleWorlds.length <= 1 ? 'done' : 'phase1';
+  render();
+}
+
+// ── Tab Switching ──
+function switchTab(tab) {
+  const isPlatform = tab === 'platform';
+  document.getElementById('tabPlatform').classList.toggle('active', isPlatform);
+  document.getElementById('tabRope').classList.toggle('active', !isPlatform);
+  document.getElementById('tabContentPlatform').style.display = isPlatform ? '' : 'none';
+  document.getElementById('tabContentRope').style.display = isPlatform ? 'none' : '';
+}
+
+// ── Rope Tree Render ──
+function renderTree() {
+  const svg = document.getElementById('treeSvg');
+  const NS = 'http://www.w3.org/2000/svg';
+
+  // Tree data: { id, left?, right?, leaf? }
+  const tree = {
+    id: '311',
+    left: {
+      id: '122',
+      left: {
+        id: '230',
+        left:  { id: '005', leaf: true },
+        right: {
+          id: '203',
+          left:  { id: '050', leaf: true },
+          right: { id: '500', leaf: true }
+        }
+      },
+      right: {
+        id: '032',
+        left: {
+          id: '140',
+          right: { id: '104', leaf: true }
+        },
+        right: { id: '023', leaf: true }
+      }
+    },
+    right: {
+      id: '221',
+      left: {
+        id: '113',
+        left:  { id: '302', leaf: true },
+        right: {
+          id: '014',
+          right: { id: '410', leaf: true }
+        }
+      },
+      right: {
+        id: '131',
+        left: {
+          id: '212',
+          left:  { id: '320', leaf: true }
+        },
+        right: {
+          id: '041',
+          right: { id: '401', leaf: true }
+        }
+      }
+    }
+  };
+
+  // Vertical top-down layout
+  const NW = 90, NH = 56, RX = 12;
+  const DX = 130;
+  const DY = 190;
+  const X0 = 60, Y0 = 50;
+
+  let leafIndex = 0;
+  function layout(node, depth) {
+    if (node.leaf) {
+      node.x = X0 + leafIndex * DX;
+      node.y = Y0 + depth * DY;
+      node.depth = depth;
+      leafIndex++;
+      return;
+    }
+    if (node.left) layout(node.left, depth + 1);
+    if (node.right) layout(node.right, depth + 1);
+    node.depth = depth;
+    node.y = Y0 + depth * DY;
+    const children = [node.left, node.right].filter(Boolean);
+    node.x = children.reduce((a, c) => a + c.x, 0) / children.length;
+  }
+  layout(tree, 0);
+
+  const nodes = [], edges = [];
+  function collect(node) {
+    nodes.push(node);
+    if (node.left)  { edges.push({ from: node, to: node.left,  label: '0根绳' }); collect(node.left); }
+    if (node.right) { edges.push({ from: node, to: node.right, label: '1根绳' }); collect(node.right); }
+  }
+  collect(tree);
+
+  function el(tag, attrs = {}, text = '') {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (text) e.textContent = text;
+    return e;
+  }
+
+  // Edges: parent bottom-center → child top-center
+  edges.forEach(edge => {
+    const x1 = edge.from.x + NW / 2;
+    const y1 = edge.from.y + NH;
+    const x2 = edge.to.x + NW / 2;
+    const y2 = edge.to.y - 5;
+    const mx = (x1 + x2) / 2;
+    const my = (y1 + y2) / 2;
+
+    const isAll = edge.label === '0根绳';
+    svg.appendChild(el('line', {
+      x1, y1, x2, y2,
+      stroke: isAll ? '#94a3b8' : '#3b82f6',
+      'stroke-width': '2',
+      'stroke-dasharray': isAll ? '6,4' : 'none'
+    }));
+    svg.appendChild(el('rect', {
+      x: mx - 38, y: my - 12, width: 76, height: 22, rx: 5,
+      fill: '#fff', 'fill-opacity': '0.9'
+    }));
+    svg.appendChild(el('text', {
+      x: mx, y: my + 5,
+      'text-anchor': 'middle',
+      'font-size': '16',
+      'font-weight': '700',
+      fill: isAll ? '#64748b' : '#2563eb',
+      'font-family': '-apple-system,BlinkMacSystemFont,sans-serif'
+    }, edge.label));
+  });
+
+  // Nodes
+  nodes.forEach(node => {
+    const isLeaf = node.leaf;
+    svg.appendChild(el('rect', {
+      x: node.x, y: node.y,
+      width: NW, height: NH, rx: RX,
+      fill: isLeaf ? '#ecfdf5' : '#fff',
+      stroke: isLeaf ? '#6ee7b7' : '#3b82f6',
+      'stroke-width': isLeaf ? '2.5' : '2'
+    }));
+    svg.appendChild(el('text', {
+      x: node.x + NW / 2, y: node.y + NH / 2 + 7,
+      'text-anchor': 'middle',
+      'font-size': '18',
+      'font-weight': '700',
+      fill: isLeaf ? '#059669' : '#1e293b',
+      'font-family': '-apple-system,BlinkMacSystemFont,monospace'
+    }, node.id));
+  });
+}
+
+// ── Init ──
+speedMode = true; // default: unchecked = speed mode
+document.getElementById('speedMode').checked = false;
+initSpeedMode();
+render();
+renderTree();
+</script>
+  <div class="author">作者：饺子</div>
+</div><!-- end .app -->
+</body>
+</html>
