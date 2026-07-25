@@ -1865,8 +1865,8 @@ function renderTree() {
   const NW = 90, NH = 56, RX = 12;
   let DX, DY, X0, Y0;
   if (treeHorizontal) {
-    // Left-to-right: DX=level spacing, DY=leaf spacing. Edges go right→left
-    DX = 160; DY = 120; X0 = 40; Y0 = 50;
+    // Left-to-right (竖版): wider spacing to fill screen
+    DX = 190; DY = 130; X0 = 30; Y0 = 20;
   } else {
     // Top-down: DX=leaf spacing, DY=level spacing. Edges go bottom→top
     DX = 130; DY = 190; X0 = 60; Y0 = 50;
@@ -1918,8 +1918,8 @@ function renderTree() {
     const isAll = edge.label === '0根绳';
     svg.appendChild(el('line', {
       x1, y1, x2, y2,
-      stroke: isAll ? '#94a3b8' : '#3b82f6',
-      'stroke-width': '2',
+      stroke: isAll ? '#ef4444' : '#10b981',
+      'stroke-width': '2.5',
       'stroke-dasharray': isAll ? '6,4' : 'none'
     }));
     svg.appendChild(el('rect', {
@@ -1931,7 +1931,7 @@ function renderTree() {
       'text-anchor': 'middle',
       'font-size': '16',
       'font-weight': '700',
-      fill: isAll ? '#64748b' : '#2563eb',
+      fill: isAll ? '#ef4444' : '#10b981',
       'font-family': '-apple-system,BlinkMacSystemFont,sans-serif'
     }, edge.label));
   });
