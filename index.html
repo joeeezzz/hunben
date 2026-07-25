@@ -102,10 +102,19 @@
   .tree-wrap {
     width: 100%;
   }
+  .tree-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
   .tree-wrap svg {
     display: block;
-    width: 100%;
+    width: 900px;
+    max-width: none;
     height: auto;
+  }
+  @media (min-width: 920px) {
+    .tree-wrap { overflow-x: visible; }
+    .tree-wrap svg { width: 100%; max-width: 900px; }
   }
   .tree-note {
     text-align: center;
@@ -639,9 +648,9 @@
   <div class="mode-bar">
     <label class="speed-toggle">
       <input type="checkbox" id="speedMode" onchange="toggleSpeedMode()">
-      <span>学习模式</span>
+      <span>极速模式</span>
     </label>
-    <span class="learn-hint">想脱离工具，可以用学习模式，不是最快，但好记！</span>
+    <span class="learn-hint">最少次数方法，但需要多人移动，不推荐使用</span>
   </div>
 
   <!-- Platform Status -->
@@ -689,7 +698,10 @@
 <!-- Tab: 绳子 -->
 <div class="tab-content" id="tabContentRope" style="display:none;">
   <div class="card">
-    <div class="tree-wrap">
+    <div style="text-align:center;margin-bottom:4px;">
+      <button class="btn btn-outline" onclick="toggleTreeOrientation()" style="font-size:.7rem;padding:3px 8px;">横版/竖版</button>
+    </div>
+    <div class="tree-wrap" id="treeWrap">
       <svg id="treeSvg" viewBox="0 0 1280 950" preserveAspectRatio="xMidYMid meet"></svg>
     </div>
     <div class="tree-note">当决策树到尽头仍未成功，说明出bug，请多次对话重新开局</div>
@@ -1662,7 +1674,7 @@ let speedHistory = [];
 let speedSuggested = [];
 
 function toggleSpeedMode() {
-  speedMode = !document.getElementById('speedMode').checked;
+  speedMode = document.getElementById('speedMode').checked;
   resetAll();
   if (speedMode) initSpeedMode();
   render();
@@ -1784,6 +1796,21 @@ function switchTab(tab) {
 }
 
 // ── Rope Tree Render ──
+let treeHorizontal = false;
+
+function toggleTreeOrientation() {
+  treeHorizontal = !treeHorizontal;
+  document.getElementById('treeSvg').innerHTML = '';
+  if (treeHorizontal) {
+    document.getElementById('treeSvg').setAttribute('viewBox', '0 0 950 1280');
+    document.getElementById('treeWrap').style.overflowX = 'visible';
+  } else {
+    document.getElementById('treeSvg').setAttribute('viewBox', '0 0 1280 950');
+    document.getElementById('treeWrap').style.overflowX = 'auto';
+  }
+  renderTree();
+}
+
 function renderTree() {
   const svg = document.getElementById('treeSvg');
   const NS = 'http://www.w3.org/2000/svg';
@@ -1835,17 +1862,22 @@ function renderTree() {
     }
   };
 
-  // Vertical top-down layout
+  // Layout params
   const NW = 90, NH = 56, RX = 12;
-  const DX = 130;
-  const DY = 190;
-  const X0 = 60, Y0 = 50;
+  let DX, DY, X0, Y0;
+  if (treeHorizontal) {
+    // Left-to-right: DX=level spacing, DY=leaf spacing. Edges go right→left
+    DX = 160; DY = 120; X0 = 40; Y0 = 50;
+  } else {
+    // Top-down: DX=leaf spacing, DY=level spacing. Edges go bottom→top
+    DX = 130; DY = 190; X0 = 60; Y0 = 50;
+  }
 
   let leafIndex = 0;
   function layout(node, depth) {
     if (node.leaf) {
-      node.x = X0 + leafIndex * DX;
-      node.y = Y0 + depth * DY;
+      if (treeHorizontal) { node.x = X0 + depth * DX; node.y = Y0 + leafIndex * DY; }
+      else { node.x = X0 + leafIndex * DX; node.y = Y0 + depth * DY; }
       node.depth = depth;
       leafIndex++;
       return;
@@ -1853,9 +1885,8 @@ function renderTree() {
     if (node.left) layout(node.left, depth + 1);
     if (node.right) layout(node.right, depth + 1);
     node.depth = depth;
-    node.y = Y0 + depth * DY;
-    const children = [node.left, node.right].filter(Boolean);
-    node.x = children.reduce((a, c) => a + c.x, 0) / children.length;
+    if (treeHorizontal) { node.y = [node.left, node.right].filter(Boolean).reduce((a,c)=>a+c.y,0) / [node.left,node.right].filter(Boolean).length; node.x = X0 + depth * DX; }
+    else { node.y = Y0 + depth * DY; node.x = [node.left, node.right].filter(Boolean).reduce((a,c)=>a+c.x,0) / [node.left,node.right].filter(Boolean).length; }
   }
   layout(tree, 0);
 
@@ -1874,15 +1905,17 @@ function renderTree() {
     return e;
   }
 
-  // Edges: parent bottom-center → child top-center
+  // Edges
   edges.forEach(edge => {
-    const x1 = edge.from.x + NW / 2;
-    const y1 = edge.from.y + NH;
-    const x2 = edge.to.x + NW / 2;
-    const y2 = edge.to.y - 5;
-    const mx = (x1 + x2) / 2;
-    const my = (y1 + y2) / 2;
-
+    let x1, y1, x2, y2;
+    if (treeHorizontal) {
+      x1 = edge.from.x + NW; y1 = edge.from.y + NH / 2;
+      x2 = edge.to.x - 5;    y2 = edge.to.y + NH / 2;
+    } else {
+      x1 = edge.from.x + NW / 2; y1 = edge.from.y + NH;
+      x2 = edge.to.x + NW / 2;  y2 = edge.to.y - 5;
+    }
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
     const isAll = edge.label === '0根绳';
     svg.appendChild(el('line', {
       x1, y1, x2, y2,
@@ -1906,29 +1939,24 @@ function renderTree() {
 
   // Nodes
   nodes.forEach(node => {
-    const isLeaf = node.leaf;
     svg.appendChild(el('rect', {
-      x: node.x, y: node.y,
-      width: NW, height: NH, rx: RX,
-      fill: isLeaf ? '#ecfdf5' : '#fff',
-      stroke: isLeaf ? '#6ee7b7' : '#3b82f6',
-      'stroke-width': isLeaf ? '2.5' : '2'
+      x: node.x, y: node.y, width: NW, height: NH, rx: RX,
+      fill: node.leaf ? '#ecfdf5' : '#fff',
+      stroke: node.leaf ? '#6ee7b7' : '#3b82f6',
+      'stroke-width': node.leaf ? '2.5' : '2'
     }));
     svg.appendChild(el('text', {
       x: node.x + NW / 2, y: node.y + NH / 2 + 7,
-      'text-anchor': 'middle',
-      'font-size': '18',
-      'font-weight': '700',
-      fill: isLeaf ? '#059669' : '#1e293b',
+      'text-anchor': 'middle', 'font-size': '18', 'font-weight': '700',
+      fill: node.leaf ? '#059669' : '#1e293b',
       'font-family': '-apple-system,BlinkMacSystemFont,monospace'
     }, node.id));
   });
 }
 
 // ── Init ──
-speedMode = true; // default: unchecked = speed mode
+speedMode = false;
 document.getElementById('speedMode').checked = false;
-initSpeedMode();
 render();
 renderTree();
 </script>
