@@ -103,18 +103,14 @@
     width: 100%;
   }
   .tree-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden;
+    width: 100%;
   }
   .tree-wrap svg {
     display: block;
-    width: 900px;
-    max-width: none;
+    width: 100%;
+    max-width: 100%;
     height: auto;
-  }
-  @media (min-width: 920px) {
-    .tree-wrap { overflow-x: visible; }
-    .tree-wrap svg { width: 100%; max-width: 900px; }
   }
   .tree-note {
     text-align: center;
@@ -1810,13 +1806,7 @@ let treeHorizontal = true;
 function toggleTreeOrientation() {
   treeHorizontal = !treeHorizontal;
   document.getElementById('treeSvg').innerHTML = '';
-  if (treeHorizontal) {
-    document.getElementById('treeSvg').setAttribute('viewBox', '0 0 950 1280');
-    document.getElementById('treeWrap').style.overflowX = 'visible';
-  } else {
-    document.getElementById('treeSvg').setAttribute('viewBox', '0 0 1280 950');
-    document.getElementById('treeWrap').style.overflowX = 'auto';
-  }
+  document.getElementById('treeSvg').setAttribute('viewBox', treeHorizontal ? '0 0 950 1280' : '0 0 1280 950');
   renderTree();
 }
 
