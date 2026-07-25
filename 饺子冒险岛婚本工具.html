@@ -639,9 +639,9 @@
   <div class="mode-bar">
     <label class="speed-toggle">
       <input type="checkbox" id="speedMode" onchange="toggleSpeedMode()">
-      <span>学习模式</span>
+      <span>极速模式</span>
     </label>
-    <span class="learn-hint">想脱离工具，可以用学习模式，不是最快，但好记！</span>
+    <span class="learn-hint">不是最快，但好记，用几盘就懂了！勾选极速可切换</span>
   </div>
 
   <!-- Platform Status -->
@@ -1662,7 +1662,7 @@ let speedHistory = [];
 let speedSuggested = [];
 
 function toggleSpeedMode() {
-  speedMode = !document.getElementById('speedMode').checked;
+  speedMode = document.getElementById('speedMode').checked;
   resetAll();
   if (speedMode) initSpeedMode();
   render();
@@ -1926,9 +1926,8 @@ function renderTree() {
 }
 
 // ── Init ──
-speedMode = true; // default: unchecked = speed mode
+speedMode = false;
 document.getElementById('speedMode').checked = false;
-initSpeedMode();
 render();
 renderTree();
 </script>
