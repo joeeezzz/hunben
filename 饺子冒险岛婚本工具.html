@@ -102,10 +102,19 @@
   .tree-wrap {
     width: 100%;
   }
+  .tree-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
   .tree-wrap svg {
     display: block;
-    width: 100%;
+    width: 900px;
+    max-width: none;
     height: auto;
+  }
+  @media (min-width: 920px) {
+    .tree-wrap { overflow-x: visible; }
+    .tree-wrap svg { width: 100%; max-width: 900px; }
   }
   .tree-note {
     text-align: center;
@@ -641,7 +650,7 @@
       <input type="checkbox" id="speedMode" onchange="toggleSpeedMode()">
       <span>极速模式</span>
     </label>
-    <span class="learn-hint">不是最快，但好记，用几盘就懂了！勾选极速可切换</span>
+    <span class="learn-hint">最少次数方法，但需要多人移动，不推荐使用</span>
   </div>
 
   <!-- Platform Status -->
