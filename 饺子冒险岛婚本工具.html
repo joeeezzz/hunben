@@ -842,7 +842,7 @@ function renderInstruction() {
       <div class="step-badge">错误</div>
       <div class="instruction-text">输入数据矛盾，不可能成立！</div>
       <div class="instruction-detail">请点撤销重新输入，或点重新开始。</div>
-      <div class="input-row"><button class="btn btn-outline" onclick="undoStep()">撤销</button><button class="btn btn-outline" onclick="resetAll()">重新开始</button></div>`;
+      <div class="input-row"><button class="btn btn-outline" onclick="copyNormalStanding()">复制站位</button><button class="btn btn-outline" onclick="undoStep()">撤销</button><button class="btn btn-outline" onclick="resetAll()">重新开始</button></div>`;
     return;
   }
 
@@ -910,6 +910,7 @@ function renderPhase1() {
       <div class="num-buttons">${numBtns1}</div>
       <div class="input-row">
         <button class="btn btn-outline" onclick="undoPhase1Input()" ${phase1InputIndex === 0 ? 'disabled' : ''}>撤销</button>
+        <button class="btn btn-outline" onclick="copyNormalStanding()">复制站位</button>
         <button class="btn btn-outline" onclick="resetAll()">重新开始</button>
       </div>
     ` : ''}
@@ -1168,6 +1169,7 @@ function renderPhase2() {
     <div class="feedback-label">${showFeedback ? '选满了，怪物数量：' : `还需选 ${need - selected} 人`}</div>
     <div class="num-buttons">${numBtns}</div>
     <div class="input-row">
+      <button class="btn btn-outline" onclick="copyNormalStanding()">复制站位</button>
       <button class="btn btn-outline" onclick="undoStep()" ${phase2History.length === 0 ? 'disabled' : ''}>撤销</button>
       <button class="btn btn-outline" onclick="resetAll()">重新开始</button>
     </div>`;
@@ -1770,6 +1772,13 @@ function renderSpeedMode() {
 }
 
 function speedInput(n) { confirmSpeedFeedback(n); }
+
+function copyNormalStanding() {
+  const s = getCurrentStandSet();
+  if (s.size === 0) return;
+  const text = [...s].sort((a,b)=>a-b).map(p => L(p)).join(' ');
+  navigator.clipboard.writeText(text).catch(() => {});
+}
 
 function copySpeedTest() {
   const text = speedSuggested.map(p => L(p)).join(' ');
