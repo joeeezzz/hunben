@@ -1805,7 +1805,7 @@ function switchTab(tab) {
 }
 
 // ── Rope Tree Render ──
-let treeHorizontal = false;
+let treeHorizontal = true;
 
 function toggleTreeOrientation() {
   treeHorizontal = !treeHorizontal;
@@ -1891,8 +1891,8 @@ function renderTree() {
       leafIndex++;
       return;
     }
-    if (node.left) layout(node.left, depth + 1);
     if (node.right) layout(node.right, depth + 1);
+    if (node.left) layout(node.left, depth + 1);
     node.depth = depth;
     if (treeHorizontal) { node.y = [node.left, node.right].filter(Boolean).reduce((a,c)=>a+c.y,0) / [node.left,node.right].filter(Boolean).length; node.x = X0 + depth * DX; }
     else { node.y = Y0 + depth * DY; node.x = [node.left, node.right].filter(Boolean).reduce((a,c)=>a+c.x,0) / [node.left,node.right].filter(Boolean).length; }
@@ -1902,8 +1902,8 @@ function renderTree() {
   const nodes = [], edges = [];
   function collect(node) {
     nodes.push(node);
-    if (node.left)  { edges.push({ from: node, to: node.left,  label: '0根绳' }); collect(node.left); }
     if (node.right) { edges.push({ from: node, to: node.right, label: '1根绳' }); collect(node.right); }
+    if (node.left)  { edges.push({ from: node, to: node.left,  label: '0根绳' }); collect(node.left); }
   }
   collect(tree);
 
